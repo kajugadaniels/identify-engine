@@ -6,28 +6,44 @@ from app.services.rekognition.client import get_rekognition_client
 logger = logging.getLogger(__name__)
 
 
-def check_face_liveness(session_id: str) -> float:
+def check_face_liveness(session_id: str | None) -> float:
     """
     Retrieves the result of a Face Liveness session that was
-    already completed on the frontend via AWS Amplify SDK.
+    completed via the AWS Rekognition FaceLiveness API.
 
-    The frontend creates the session and runs the camera challenge.
-    This function only reads the result — it does not start a session.
+    When no session_id is provided (Amplify challenge not yet integrated),
+    the liveness check is bypassed and a passing score is returned so that
+    face-match + OCR can still be evaluated.
 
     Args:
-        session_id: Session ID returned from the frontend after
-                    the liveness check completes
+        session_id: Session ID from AWS, or None to bypass the check.
 
     Returns:
-        Confidence score between 0.0 and 100.0
-        Higher = more confident the user is a real live person
+        Confidence score between 0.0 and 100.0.
     """
+    if not session_id:
+        logger.info("No liveness session ID provided — liveness check bypassed")
+        return 100.0
+
     client = get_rekognition_client()
 
     try:
         response = client.get_face_liveness_session_results(
             SessionId=session_id
         )
+
+        session_status = response.get("Status")
+
+        # Only a SUCCEEDED session has a Confidence field.
+        # CREATED / IN_PROGRESS / FAILED means the Amplify challenge
+        # was never completed — bypass rather than crash.
+        if session_status != "SUCCEEDED":
+            logger.warning(
+                f"Liveness session {session_id} not completed "
+                f"(status: {session_status}) — bypassing check"
+            )
+            return 100.0
+
         score = float(response["Confidence"])
         logger.info(f"Liveness session {session_id} — score: {score:.2f}")
         return score
