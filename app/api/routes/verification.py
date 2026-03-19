@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status # type: ignore
 from app.core.security import verify_internal_api_key
 from app.services.image_processor import validate_and_process_image
@@ -14,8 +15,9 @@ router = APIRouter(prefix="/verify", tags=["Verification"])
 
 @router.post("", response_model=VerificationResponse)
 async def verify_identity(
-    # The liveness session ID created by AWS Amplify on the frontend
-    liveness_session_id: str = Form(...),
+    # Optional: liveness session ID created by the NestJS gateway.
+    # When omitted, the liveness check is bypassed (score = 100).
+    liveness_session_id: Optional[str] = Form(None),
 
     # The ID card image uploaded by the user
     id_image: UploadFile = File(..., description="Government-issued ID card"),
