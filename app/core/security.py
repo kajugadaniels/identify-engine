@@ -1,5 +1,5 @@
-from fastapi import Security, HTTPException, status
-from fastapi.security import APIKeyHeader
+from fastapi import Security, HTTPException, status # type: ignore
+from fastapi.security import APIKeyHeader # type: ignore
 from app.core.config import get_settings
 
 # Tells FastAPI to look for this header on incoming requests
