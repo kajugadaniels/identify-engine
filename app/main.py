@@ -29,11 +29,11 @@ def create_app() -> FastAPI:
     )
 
     # ── CORS ──────────────────────────────────────────
-    # Only the NestJS gateway (localhost:3001) can reach this service
-    # In production this would be the internal network address
+    # Only the NestJS gateway can reach this service
+    # API_URL in .env controls which origin is allowed
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3001"],
+        allow_origins=[settings.api_url],
         allow_methods=["POST"],
         allow_headers=["X-Internal-API-Key", "Content-Type"],
     )

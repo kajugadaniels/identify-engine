@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     # This prevents anything other than our NestJS gateway from calling it
     internal_api_key: str
 
+    # ── CORS ─────────────────────────────────────────
+    # The NestJS gateway URL allowed to call this engine
+    api_url: str = "http://localhost:3001"
+
     # ── AWS ──────────────────────────────────────────
     aws_access_key_id: str
     aws_secret_access_key: str
